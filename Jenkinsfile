@@ -1,28 +1,20 @@
-pipeline {
-    agent any
-    stages {
-        stage('Check Docker') {
-            steps {
-                // Check Docker version to ensure Docker is available
-                sh 'docker --version'
-            }
-        }
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    // Build Docker image based on Dockerfile in the main branch
-                    docker.build("my-flask-app")
-                }
-            }
-        }
-        stage('Run Application') {
-            steps {
-                script {
-                    // Run the Flask application in a Docker container
-                    // Ensure the container runs and exposes the correct port
-                    docker.image("my-flask-app").run('-p 5000:5000')
-                }
-            }
-        }
-    }
-}
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Make port 5000 available to the world outside this container
+EXPOSE 5000
+
+# Define environment variable
+ENV NAME World
+
+# Run hello.py when the container launches
+CMD ["python", "hello.py"]
