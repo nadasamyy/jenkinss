@@ -4,8 +4,13 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image based on Dockerfile in Branch 1
-                    docker.build("my-flask-app")
+                    // Ensure Docker is available in the environment
+                    if (docker.available()) {
+                        // Build Docker image based on Dockerfile in Branch 1
+                        docker.build("my-flask-app")
+                    } else {
+                        error "Docker is not available in the environment."
+                    }
                 }
             }
         }
@@ -13,7 +18,11 @@ pipeline {
             steps {
                 script {
                     // Run the Flask application in a Docker container
-                    docker.image("my-flask-app").run('-p 5000:5000')
+                    if (docker.available()) {
+                        docker.image("my-flask-app").run('-p 5000:5000')
+                    } else {
+                        error "Docker is not available in the environment."
+                    }
                 }
             }
         }
