@@ -4,6 +4,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Build the Docker image
                     sh 'docker build -t myimage .'
                 }
             }
@@ -11,7 +12,8 @@ pipeline {
         stage('Run Application') {
             steps {
                 script {
-                    sh 'start python hello.py'  // Use 'start' for Windows to run the app
+                    // Run the Flask app using python
+                    sh 'python hello.py'  // Use 'python' instead of 'start' for Unix-like systems
                 }
             }
         }
