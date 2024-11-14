@@ -10,7 +10,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image based on Dockerfile in Branch 1
+                    // Build Docker image based on Dockerfile in the main branch
                     docker.build("my-flask-app")
                 }
             }
@@ -19,6 +19,7 @@ pipeline {
             steps {
                 script {
                     // Run the Flask application in a Docker container
+                    // Ensure the container runs and exposes the correct port
                     docker.image("my-flask-app").run('-p 5000:5000')
                 }
             }
