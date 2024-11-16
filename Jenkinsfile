@@ -1,20 +1,56 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+pipeline {
+    agent any
 
-# Set the working directory in the container
-WORKDIR /app
+    environment {
+        DOCKER_IMAGE = 'myflaskapp'
+    }
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+    stages {
+        stage('Build and Run') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        echo "Building and running Docker container for main branch"
+                        
+                        // Build the Docker image
+                        sh '''
+                        docker build -t ${DOCKER_IMAGE} .
+                        '''
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+                        // Run the Docker container
+                        sh '''
+                        docker run -d -p 5000:5000 --name flask_app ${DOCKER_IMAGE}
+                        '''
+                    } else if (env.BRANCH_NAME == 'feature') {
+                        echo "Running Flask application for feature branch"
+                        
+                        // Install dependencies and run Flask application directly
+                        sh '''
+                        python3 -m venv venv
+                        source venv/bin/activate
+                        pip install flask
+                        python hello.py &
+                        '''
+                    } else {
+                        error "Unsupported branch: ${env.BRANCH_NAME}"
+                    }
+                }
+            }
+        }
+    }
 
-# Make port 5000 available to the world outside this container
-EXPOSE 5000
-
-# Define environment variable
-ENV NAME World
-
-# Run hello.py when the container launches
-CMD ["python", "hello.py"]
+    post {
+        always {
+            script {
+                if (env.BRANCH_NAME == 'main') {
+                    // Stop and remove the container to clean up
+                    sh '''
+                    docker stop flask_app || true
+                    docker rm flask_app || true
+                    '''
+                }
+            }
+            echo "Clean-up completed"
+        }
+    }
+}
